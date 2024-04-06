@@ -1,0 +1,5 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "updateContentCommand": "pipx install hatch",
+  "postCreateCommand": "hatch env create"
+}
