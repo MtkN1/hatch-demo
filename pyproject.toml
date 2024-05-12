@@ -24,7 +24,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "numpy",
+]
 
 [project.urls]
 Documentation = "https://github.com/MtkN1/hatch-demo#readme"
@@ -33,6 +35,14 @@ Source = "https://github.com/MtkN1/hatch-demo"
 
 [tool.hatch.version]
 path = "src/hatch_demo/__about__.py"
+
+[tool.hatch.envs.default]
+template = "hatch-test"
+python = "3.8"
+[tool.hatch.envs.default.extra-scripts]
+combine = "coverage combine {args}"
+report-xml = "coverage xml"
+report-uncovered-html = "coverage html --skip-covered --skip-empty"
 
 [tool.hatch.envs.types]
 extra-dependencies = [
