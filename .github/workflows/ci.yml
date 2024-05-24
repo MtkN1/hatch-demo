@@ -5,6 +5,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  STABLE_PYTHON_VERSION: '3.11'
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -50,25 +59,16 @@ jobs:
       - name: Checkout flask
         run: curl -fsSL https://github.com/pallets/flask/archive/refs/tags/3.0.3.tar.gz | tar -xz --strip-components=1
 
+      - name: Set up Python ${{ env.STABLE_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.STABLE_PYTHON_VERSION }}
+
       - name: Ensure user-specific executable directory
         run: mkdir --parents ~/.local/bin
 
-      - name: Install uv
-        run: |
-          curl -fsSL https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C ~
-          mv ~/uv-x86_64-unknown-linux-gnu/uv ~/.local/bin
-
-      - name: Install coverage
-        run: |
-          VIRTUAL_ENV="$HOME/venvs/coverage"
-          uv venv "$VIRTUAL_ENV"
-          VIRTUAL_ENV="$VIRTUAL_ENV" uv pip install coverage[toml]~=7.4
-          ln -sv "$VIRTUAL_ENV/bin/coverage" ~/.local/bin
-
-      - name: Install flask
-        run: |
-          uv venv
-          uv pip install -e .
+      - name: Install Hatch
+        uses: pypa/hatch@install
 
       - name: Download coverage data
         uses: actions/download-artifact@v4
@@ -77,13 +77,12 @@ jobs:
           merge-multiple: true
 
       - name: Combine coverage data
-        run: coverage combine
+        run: hatch -e hatch-test.py${{ env.STABLE_PYTHON_VERSION }} run coverage combine
 
       - name: Export coverage reports
         run: |
-          source .venv/bin/activate
-          coverage report --format=markdown --show-missing >> $GITHUB_STEP_SUMMARY
-          coverage html --skip-covered --skip-empty
+          hatch -e hatch-test.py${{ env.STABLE_PYTHON_VERSION }} run coverage report --format=markdown --show-missing >> $GITHUB_STEP_SUMMARY
+          hatch -e hatch-test.py${{ env.STABLE_PYTHON_VERSION }} run coverage html --skip-covered --skip-empty
 
       - name: Upload uncovered HTML report
         uses: actions/upload-artifact@v4
