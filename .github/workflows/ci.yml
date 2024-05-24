@@ -24,18 +24,8 @@ jobs:
       - name: Ensure user-specific executable directory
         run: mkdir --parents ~/.local/bin
 
-      - name: Install uv
-        run: |
-          curl -fsSL https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C ~
-          mv ~/uv-x86_64-unknown-linux-gnu/uv ~/.local/bin
-          echo "HATCH_ENV_TYPE_VIRTUAL_UV_PATH=$HOME/.local/bin/uv" >> "$GITHUB_OUTPUT"
-
-      - name: Install hatch
-        run: |
-          VIRTUAL_ENV="$HOME/venvs/hatch"
-          uv venv "$VIRTUAL_ENV"
-          VIRTUAL_ENV="$VIRTUAL_ENV" uv pip install hatch
-          ln -sv "$VIRTUAL_ENV/bin/hatch" ~/.local/bin
+      - name: Install Hatch
+        uses: pypa/hatch@install
 
       - name: Run tests
         run: hatch test --python ${{ matrix.python-version }} --cover-quiet
