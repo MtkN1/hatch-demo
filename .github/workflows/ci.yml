@@ -29,7 +29,7 @@ jobs:
         uses: pypa/hatch@install
 
       - name: Run tests
-        run: hatch test --python ${{ matrix.python-version }} --cover-quiet
+        run: hatch test --python ${{ matrix.python-version }} --cover-quiet --randomize --parallel --retries 5 --retry-delay 3
 
       - name: Disambiguate coverage filename
         run: mv .coverage ".coverage.${{ matrix.os }}.${{ matrix.python-version }}"
